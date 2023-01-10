@@ -148,7 +148,6 @@ docker create --name nginx \
 --link iipOff:iipOff \
 --link web_UI:web_UI \
 -v $IMS_BUFFER_PATH:/tmp/uploaded \
--p 80:80 \
 --restart=unless-stopped \
 cytomine/nginx:v1.4.0 > /dev/null
 
