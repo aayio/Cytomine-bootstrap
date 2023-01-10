@@ -16,9 +16,9 @@ cytomine.customUI.global = [
 ]
 
 
-grails.serverURL='http://$CORE_URL'
-grails.imageServerURL=['http://$IMS_URL1','http://$IMS_URL2']
-grails.uploadURL='http://$UPLOAD_URL'
+grails.serverURL='https://$CORE_URL'
+grails.imageServerURL=['https://$IMS_URL1','https://$IMS_URL2']
+grails.uploadURL='https://$UPLOAD_URL'
 
 storage_buffer='$IMS_BUFFER_PATH'
 storage_path='$IMS_STORAGE_PATH'
