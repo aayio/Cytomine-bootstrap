@@ -17,6 +17,7 @@
 #
 
 docker create --name memcached \
+--network server_default \
 --restart=unless-stopped \
 cytomine/memcached:v1.2.0 > /dev/null
 
@@ -27,6 +28,7 @@ docker start memcached
 docker create --name rabbitmq \
 -p 5672:5672 -p 15672:15672 \
 -e RABBITMQ_PASS=$RABBITMQ_PASS \
+--network server_default \
 --restart=unless-stopped \
 cytomine/rabbitmq:v1.2.0 > /dev/null
 
@@ -36,12 +38,14 @@ docker start rabbitmq
 docker volume create --name postgis_data > /dev/null
 # create database docker
 docker run -d -m 8g --name postgresql -v postgis_data:/var/lib/postgresql \
+--network server_default \
 --restart=unless-stopped \
 cytomine/postgis:v2.1.0 > /dev/null
 
 docker volume create --name mongodb_data > /dev/null
 # create mongodb docker
 docker run -d --name mongodb -v mongodb_data:/data/db \
+--network server_default \
 --restart=unless-stopped \
 cytomine/mongodb:v1.1.2 > /dev/null
 
@@ -62,6 +66,7 @@ docker create --name slurm \
 -v slurm_data:/var/lib/mysql \
 -v singularity_images:/data/softwares/images \
 -v /etc/localtime:/etc/localtime \
+--network server_default \
 --restart=unless-stopped \
 cytomine/slurm:v1.2.0 > /dev/null
 
@@ -73,7 +78,7 @@ docker exec -it slurm chmod 600 /home/cytomine/.ssh/authorized_keys
 
 
 docker create --name iipOff \
---link memcached:memcached \
+--network server_default \
 -v $IMS_STORAGE_PATH:$IMS_STORAGE_PATH \
 --privileged -e NB_IIP_PROCESS=$NB_IIP_PROCESS \
 --restart=unless-stopped \
@@ -84,7 +89,7 @@ docker start iipOff
 
 
 docker create --name iipCyto \
---link memcached:memcached \
+--network server_default \
 -v $IMS_STORAGE_PATH:$IMS_STORAGE_PATH \
 --privileged -e NB_IIP_PROCESS=$NB_IIP_PROCESS \
 --restart=unless-stopped \
@@ -97,6 +102,7 @@ docker start iipCyto
 docker create --name bioformat \
 -v $IMS_STORAGE_PATH:$IMS_STORAGE_PATH \
 -e BIOFORMAT_PORT=$BIOFORMAT_PORT \
+--network server_default \
 --restart=unless-stopped \
 cytomine/bioformat:v1.2.0 > /dev/null
 
@@ -104,7 +110,7 @@ docker start bioformat
 
 
 docker create --name ims \
---link bioformat:bioformat \
+--network server_default \
 -e IMS_STORAGE_PATH=$IMS_STORAGE_PATH \
 -v $IMS_STORAGE_PATH:$IMS_STORAGE_PATH \
 -v $IMS_BUFFER_PATH:/tmp/uploaded \
@@ -117,9 +123,7 @@ docker start ims
 
 
 docker create --name core \
---link postgresql:postgresql \
---link mongodb:mongodb \
---link rabbitmq:rabbitmq \
+--network server_default \
 -v /etc/localtime:/etc/localtime \
 -v $UPLOADED_SOFTWARES_PATH:/data/softwares/code \
 --restart=unless-stopped \
@@ -133,6 +137,7 @@ docker start core
 
 docker create --name web_UI \
 -v /etc/localtime:/etc/localtime \
+--network server_default \
 --restart=unless-stopped \
 cytomine/web_ui:v1.4.0 > /dev/null
 
@@ -142,11 +147,7 @@ docker start web_UI
 
 
 docker create --name nginx \
---link ims:ims \
---link iipCyto:iipCyto \
---link core:core \
---link iipOff:iipOff \
---link web_UI:web_UI \
+--network server_default \
 -v $IMS_BUFFER_PATH:/tmp/uploaded \
 --restart=unless-stopped \
 cytomine/nginx:v1.4.0 > /dev/null
@@ -159,8 +160,7 @@ docker create --name software_router \
 -v singularity_images:/data/softwares/images \
 -v /var/run/docker.sock:/var/run/docker.sock \
 --privileged \
---link rabbitmq:rabbitmq \
---link slurm:slurm \
+--network server_default \
 --restart=unless-stopped \
 cytomine/software_router:v2.1.1 > /dev/null
 
@@ -169,5 +169,3 @@ docker cp $PWD/configs/software_router/config.groovy software_router:/software_r
 docker cp $PWD/configs/software_router/keys/ssh_key software_router:/root/.ssh/id_rsa
 docker start software_router
 docker exec -it software_router chmod 600 /root/.ssh/id_rsa
-
-
